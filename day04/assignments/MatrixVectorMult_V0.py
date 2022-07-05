@@ -56,26 +56,29 @@ b=COMM.bcast(b,root=0)
 
 
 #####################Compute A*b locally#######################################
-LocalX = np.zeros((Local_size, SIZE))
+LocalX = np.zeros(Local_size)
 
 
 start = MPI.Wtime()
 matrixVectorMult(LocalMatrix, b, LocalX)
-print(LocalX)
 stop = MPI.Wtime()
 if RANK == 0:
    print("CPU time of parallel multiplication is ", (stop - start)*1000)
 
 ##################Gather te results ###########################################
-sendcouns = len(LocalX)
-sendcounts = np.array(COMM.gather(sendcouns,root=0))
+#sendcouns = 
+sendcounts = np.array(COMM.gather(len(LocalX),root=0))
 if RANK == 0: 
-    X = np.empty(sum(sendcounts),dtype=int)
-else :
-    X = None
+   X = np.zeros(sum(sendcounts),dtype=np.double)
 
+else :
+   X = None
+
+if RANK == 0:
+   print(len(X))
+print(RANK, sendcounts, len(LocalX))
 # Gather the result into X
-COMM.Gatherv(LocalX, X=(X, sendcounts,[SIZE], MPI.DOUBLE), root=0)
+COMM.Gatherv(LocalX, recvbuf=(X, sendcounts, MPI.DOUBLE), root=0)
 
 
 ##################Print the results ###########################################

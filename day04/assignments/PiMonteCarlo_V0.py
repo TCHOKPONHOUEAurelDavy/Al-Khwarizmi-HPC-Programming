@@ -1,11 +1,17 @@
+
 import random 
 import timeit
+from mpi4py import MPI
 
-INTERVAL= 1000
+COMM = MPI.COMM_WORLD
+nbOfproc = COMM.Get_size()
+RANK = COMM.Get_rank()
+
+
 
 random.seed(42)  
 
-def compute_points():
+def compute_points(n):
    
    random.seed(42)  
    
@@ -13,7 +19,7 @@ def compute_points():
 
    # Total Random numbers generated= possible x 
    # values* possible y values 
-   for i in range(INTERVAL**2): 
+   for i in range(n): 
      
        # Randomly generated x and y values from a 
        # uniform distribution 
@@ -37,11 +43,14 @@ def compute_points():
    
    return circle_points
 
+INTERVAL= 1000
+a= int((INTERVAL**2)/4)
 start = timeit.default_timer()
-circle_points = compute_points()
+circle_points = compute_points(a)
 end = timeit.default_timer()
-
-
 pi = 4* circle_points/ INTERVAL**2 
-print("Circle points number :",circle_points)
-print("Final Estimation of Pi=", pi, "cpu time :",end-start) 
+circle_point_reduced = COMM.reduce(circle_points, op=MPI.SUM, root=0)
+pi_reduced = COMM.reduce(pi, op=MPI.SUM, root=0)
+if RANK==0:
+   print("Circle points number :",circle_point_reduced )
+   print("Final Estimation of Pi=", pi_reduced, "cpu time :",end-start) 

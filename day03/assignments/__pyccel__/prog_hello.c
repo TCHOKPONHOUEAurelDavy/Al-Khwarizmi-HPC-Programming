@@ -1,5 +1,5 @@
-#include "hello.h"
 #include "omp.h"
+#include "hello.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
